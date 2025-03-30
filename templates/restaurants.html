@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Ravintolat</title>
+    </head>
+    <body>
+        <header>
+            <a href="/">Etusivulle</a>
+            {% if session.username %}
+                <a href="/new_restaurant">Lisää ravintola</a>
+                <a href="/logout">Kirjaudu ulos</a>
+            {% else %}
+                <a href="/login">Kirjaudu sisään</a>
+                <a href="/register">Rekisteröidy</a>
+            {% endif %}
+        </header>
+
+        <h1>Selaa ravintoloita</h1>
+
+        {% if not restaurants %}
+            <p>Ei ravintoloita</p>
+        {% else %}
+            <ul>
+                {% for restaurant in restaurants %}
+                    <li>
+                        <a href="/restaurant/{{ restaurant.id }}">{{ restaurant.name }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </body>
+</html>
+

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ restaurant.name }}</title>
+</head>
+
+<body>
+    <header>
+        <a href="/">Etusivulle</a>
+    </header>
+
+    <h1>{{ restaurant.name }}</h1>
+
+    <p>Osoite: {{ restaurant.address }}</p>
+    <p>Nettisivu: <a href="{{ restaurant.link }}">{{ restaurant.link }}</a></p>
+
+    <form action="/remove/{{ restaurant.id }}" method="post">
+        <input type="submit" value="Poista ravintola" />
+    </form>
+
+    <form action="/edit/{{ restaurant.id }}" method="post">
+        <input type="submit" value="Muokkaa ravintolaa" />
+    </form>
+</body>
+
+</html>
