@@ -6,6 +6,17 @@
 </head>
 
 <body>
+    <header>
+        <a href="/">Etusivulle</a>
+        <a href="/restaurants">Selaa ravintoloita</a>
+        <a href="/search">Etsi ravintolaa</a>
+        {% if session.username %}
+            <a href="/logout">Kirjaudu ulos</a>
+        {% else %}
+            <a href="/login">Kirjaudu sisään</a>
+            <a href="/register">Rekisteröidy</a>
+        {% endif %}
+    </header>
     <h1>Lisää ravintola</h1>
     <form action="/new_restaurant" method="post">
         <p>

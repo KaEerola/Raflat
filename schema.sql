@@ -13,13 +13,11 @@ CREATE TABLE IF NOT EXISTS restaurants (
 
 CREATE TABLE IF NOT EXISTS reviews (
     id INTEGER PRIMARY KEY,
-    restaurant_id INTEGER NOT NULL,
-    user_id INTEGER NOT NULL,
+    restaurant_id INTEGER REFERENCES restaurants,
+    user_id INTEGER REFERENCES users,
     rating INTEGER NOT NULL,
     comment TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id)
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS tags (
@@ -28,9 +26,7 @@ CREATE TABLE IF NOT EXISTS tags (
 );
 
 CREATE TABLE IF NOT EXISTS restaurant_Tags (
-    restaurant_id INTEGER NOT NULL,
-    tag_id INTEGER NOT NULL,
-    PRIMARY KEY (restaurant_id, tag_id),
-    FOREIGN KEY (restaurant_id) REFERENCES restaurants(id),
-    FOREIGN KEY (tag_id) REFERENCES tags(id)
+    restaurant_id INTEGER REFERENCES restaurants,
+    tag_id INTEGER REFERENCES tags,
+    PRIMARY KEY (restaurant_id, tag_id)
 );

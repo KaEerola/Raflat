@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<head>
+    <title>Arvostelun lisäys</title>
+</head>
+<body>
+    <h1>Lisää arvostelu</h1>
+    <form action="/add_review/{{ restaurant.id }}" method="post">
+        <p>
+            Arvosana: <br />
+            <input type="number" name="rating" min="1" max="5" required/>
+        </p>
+        <p>
+            Arvostelu: <br />
+            <textarea name="comment" id="comment" rows="8" cols="60" maxlength="1000" required></textarea>
+        </p>
+        <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}" />
+        <input type="submit" value="Lisää arvostelu" />
+    </form>
+    <p>
+        <a href="/restaurant/{{ restaurant.id }}">Peruuta</a>
+    </p>

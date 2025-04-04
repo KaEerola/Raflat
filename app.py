@@ -1,6 +1,6 @@
 import sqlite3
 from flask import Flask
-from flask import redirect, render_template, request, session, flash
+from flask import redirect, render_template, request, session, flash, abort, url_for
 from werkzeug.security import generate_password_hash, check_password_hash
 import db
 import config
@@ -8,6 +8,10 @@ import restaurants
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY 
+
+def require_login():
+    if "user_id" not in session:
+        abort(403)
 
 @app.route("/")
 def index():
@@ -29,10 +33,11 @@ def create():
     try:
         sql = "INSERT INTO users (username, password_hash) VALUES (?, ?)"
         db.execute(sql, [username, password_hash])
+        flash("Tunnus luotu", "")
     except sqlite3.IntegrityError:
         return "VIRHE: tunnus on jo varattu"
 
-    return "Tunnus luotu"
+    return redirect("/")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -42,22 +47,29 @@ def login():
         username = request.form["username"]
         password = request.form["password"]
         
-        sql = "SELECT password_hash FROM users WHERE username = ?"
-        password_hash = db.query(sql, [username])[0][0]
+        sql = "SELECT id, password_hash FROM users WHERE username = ?"
+        result = db.query(sql, [username])
+        
+        if result:
+            user_id, password_hash = result[0]
+            if check_password_hash(password_hash, password):
+                session["username"] = username
+                session["user_id"] = user_id
+                return redirect("/")
+        
+        return "VIRHE: väärä tunnus tai salasana"
 
-        if check_password_hash(password_hash, password):
-            session["username"] = username
-            return redirect("/")
-        else:
-            return "VIRHE: väärä tunnus tai salasana"
 
 @app.route("/logout")
 def logout():
     del session["username"]
+    del session["user_id"]
     return redirect("/")
 
 @app.route("/new_restaurant", methods=["GET", "POST"])
 def new_restaurants():
+    require_login()
+
     if request.method == "GET":
         return render_template("new_restaurant.html")
     
@@ -80,27 +92,70 @@ def show_restaurants():
 @app.route("/restaurant/<int:restaurant_id>")
 def show_restaurant(restaurant_id):
     restaurant = restaurants.get_restaurant(restaurant_id)
-    return render_template("restaurant.html", restaurant=restaurant)
+    reviews = restaurants.get_reviews(restaurant_id)
+    return render_template("restaurant.html", restaurant=restaurant, reviews=reviews)
 
-@app.route("/edit/<int:restaurant_id>", methods=["GET", "POST"])
+@app.route("/edit_restaurant/<int:restaurant_id>")
 def edit_restaurant(restaurant_id):
     restaurant = restaurants.get_restaurant(restaurant_id)
-    
-    if request.method == "GET":
-        return render_template("edit.html", restaurant = restaurant)
+    return render_template("edit_restaurant.html", restaurant = restaurant)
 
-    if request.method == "POST":
-        name = request.form.get("name") or restaurant["name"]
-        address = request.form.get("address") or restaurant["address"]
-        link = request.form.get("link") or restaurant["link"]
-        restaurants.update_restaurant(restaurant_id, name, address, link)
-        return redirect("/restaurants")
+@app.route("/update_restaurant", methods=["POST"])
+def update_restaurant():
+    restaurant_id = request.form["id"]
+    name = request.form["name"]
+    address = request.form["address"]
+    link = request.form["link"]
     
-@app.route("/remove/<int:restaurant_id>", methods=["GET", "POST"])
+    restaurants.update_restaurant(restaurant_id, name, address, link)
+
+    flash('Ravintola päivitetty', "")
+
+    return redirect("/restaurants")
+        
+    
+@app.route("/remove_restaurant/<int:restaurant_id>", methods=["GET", "POST"])
 def remove_restaurant(restaurant_id):
     restaurant = restaurants.get_restaurant(restaurant_id)
     if request.method == "GET":
-        return render_template("remove.html", restaurant = restaurant)
+        return render_template("remove_restaurant.html", restaurant = restaurant)
     if request.method == "POST":
         restaurants.remove_restaurant(restaurant["id"])
         return redirect("/restaurants")
+
+@app.route("/search")
+def search():
+    query = request.args.get("query")
+    if query:
+        results = restaurants.find_restaurant(query)
+    else:
+        query = ""
+        results = []
+    return render_template("search.html", query=query, results=results)
+    
+@app.route("/add_review/<int:restaurant_id>", methods=["GET", "POST"])
+def add_review(restaurant_id):
+    if request.method == "GET":
+        restaurant = restaurants.get_restaurant(restaurant_id)
+        return render_template("add_review.html", restaurant = restaurant)
+    if request.method == "POST":
+        comment = request.form["comment"]
+        user_id = session["user_id"]
+        rating = request.form["rating"]
+        restaurants.add_review(restaurant_id, user_id, rating, comment)
+        flash('Arvostelu lisätty', "")
+        return redirect("/restaurants")
+
+@app.route("/remove_review/<int:review_id>", methods=["GET", "POST"])
+def remove_review(review_id):
+    if request.method == "GET":
+        review = restaurants.get_review(review_id)
+        restaurant = restaurants.get_restaurant(review["restaurant_id"])
+        return render_template("remove_review.html", review=review, restaurant=restaurant)
+    
+    if request.method == "POST":
+        review = restaurants.get_review(review_id)
+        restaurant_id = review["restaurant_id"]
+        restaurants.remove_review(review_id)
+        flash('Arvostelu poistettu', "")
+        return redirect(url_for("show_restaurant", restaurant_id=restaurant_id))

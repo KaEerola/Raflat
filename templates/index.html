@@ -6,6 +6,17 @@
 </head>
 
 <body>
+  <header>
+    <a href="/restaurants">Selaa ravintoloita</a>
+    <a href="/search">Etsi ravintolaa</a>
+    {% if not session.username %}
+    <a href="/login">Kirjaudu sisään</a>
+    <a href="/register">Rekisteröidy</a>
+    {% else %}
+    <a href="/logout">Kirjaudu ulos</a>
+    <a href="/new_restaurant">Lisää ravintola</a>
+    {% endif %}
+  </header>
   <h1>Raflat</h1>
   <p>
     Sovellus Helsinkiläisten ravintoloiden tutkimiseen ja arvosteluun.
@@ -15,18 +26,6 @@
     Olet kirjautunut nimellä {{ session.username }}
   </p>
   {% endif %}
-  <p>
-    <a href="/restaurants">Selaa ravintoloita</a>
-    {% if not session.username %}
-    <a href="/login">Kirjaudu sisään</a>
-    <a href="/register">Rekisteröidy</a>
-    {% else %}
-    <a href="/logout">Kirjaudu ulos</a>
-    <a href="/new_restaurant">Lisää ravintola</a>
-    {% endif %}
-  </p>
-
-
 </body>
 
 </html>

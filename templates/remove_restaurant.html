@@ -4,12 +4,14 @@
         <title>Ravintolan poisto</title>
     </head>
     <body>
-      <form action="/remove/{{ restaurant.id }}" method="post">
+      <form action="/remove_restaurant/{{ restaurant.id }}" method="post">
         <p>
           Haluatko varmasti poistaa ravintolan {{ restaurant.name }}?
         </p>
         <input type="submit" name="continue" value="Jatka" />
-        <input type="submit" name="cancel" value="Peruuta" />
-      </form>
+        </form>
+        <a href="/restaurant/{{ restaurant.id }}">
+            <button type="button">Peruuta</button>
+        </a>
     </body>
 </html>

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Ravintolan muokkaus</title>
+    </head>
+    <body>
+        <h1>Muokkaa ravintolaa</h1>
+        <form action="/update_restaurant" method="post">
+            <p>
+                Nimi: <br />
+                <input type="text" name="name" value="{{ restaurant.name }}" />
+            </p>
+            <p>
+                Osoite: <br />
+                <input type="text" name="address" value="{{ restaurant.address }}" />
+            </p>
+            <p>
+                Nettisivu: <br />
+                <input type="text" name="link" value="{{ restaurant.link }}" />
+            </p>
+            <input type="hidden" name="id" value="{{ restaurant.id }}" />
+            <input type="submit" value="Tallenna muutokset" />
+        </form>
+        <p>
+            <a href="/restaurants">Peruuta</a>
+        </p>
+</html>

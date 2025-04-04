@@ -7,6 +7,15 @@
 <body>
     <header>
         <a href="/">Etusivulle</a>
+        <a href="/restaurants">Selaa ravintoloita</a>
+        <a href="/search">Etsi ravintolaa</a>
+        {% if session.username %}
+            <a href="/new_restaurant">Lisää ravintola</a>
+            <a href="/logout">Kirjaudu ulos</a>
+        {% else %}
+            <a href="/login">Kirjaudu sisään</a>
+            <a href="/register">Rekisteröidy</a>
+        {% endif %}
     </header>
 
     <h1>{{ restaurant.name }}</h1>
@@ -14,13 +23,51 @@
     <p>Osoite: {{ restaurant.address }}</p>
     <p>Nettisivu: <a href="{{ restaurant.link }}">{{ restaurant.link }}</a></p>
 
-    <form action="/remove/{{ restaurant.id }}" method="post">
-        <input type="submit" value="Poista ravintola" />
-    </form>
+    <p>
+        <a href="/edit_restaurant/{{ restaurant.id }}">
+            <button type="button">Muokkaa ravintolaa</button>
+        </a>
+    </p>
 
-    <form action="/edit/{{ restaurant.id }}" method="post">
-        <input type="submit" value="Muokkaa ravintolaa" />
-    </form>
+    <p>
+        <a href="/remove_restaurant/{{ restaurant.id }}"> 
+            <button type="button">Poista ravintola</button>
+        </a>
+    </p>
+    <p>
+        <a href="/add_review/{{ restaurant.id }}">
+            <button type="button">Lisää arvostelu</button>
+        </a>
+    </p>
+    <a href="/restaurants">Takaisin ravintoloihin</a>
+
+    {% if reviews %}
+    <h2>Arvostelut</h2>
+    <div class="reviews">
+        {% for review in reviews %}
+        
+            <div class="review-card">
+                <p><strong>{{ review.username}} {{ review.created_at}}</strong></p>
+                <p>{{ review.comment }} - {{ review.rating }} tähteä</p>
+                {% if session.user_id == review.user_id %}
+                    <p>
+                        <a href="/edit_review/{{ review.id }}">
+                            <button type="button">Muokkaa arvostelua</button>
+                        </a>
+                    </p>
+                    <p>
+                        <a href="/remove_review/{{ review.id }}">
+                            <button type="button">Poista arvostelu</button>
+                        </a>
+                    </p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Ei arvosteluja</p>
+    {% endif %}
+
 </body>
 
 </html>

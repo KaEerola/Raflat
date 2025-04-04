@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Ravintolan etsiminen</title>
+    </head>
+    <body>
+        <header>
+            <a href="/">Etusivu</a>
+            <a href="/restaurants">Selaa ravintoloita</a>
+            {% if not session.username %}
+            <a href="/login">Kirjaudu sisään</a>
+            <a href="/register">Rekisteröidy</a>
+            {% else %}
+            <a href="/logout">Kirjaudu ulos</a>
+            <a href="/new_restaurant">Lisää ravintola</a>
+            {% endif %}
+        </header>
+        <h2>Etsi ravintolaa</h2>
+
+        <form action="/search" method="get">
+            <p>
+                <label for="query">Hakusana</label>:
+                <input type="text" name="query" id="query" value="{{ query }}">
+            </p>
+            <input type="submit" value="Lähetä">
+        </form>
+
+        {% if query %}
+            <h3>Tulokset</h3>
+            {% if results %}
+                <ul>
+                    {% for restaurant in results %}
+                        <li><a href="/restaurant/{{ restaurant.id }}">{{ restaurant.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Ei löytynyt ravintoloita hakusanalla "{{ query }}"</p>
+            {% endif %}
+        {% endif %}
+    </body>
+</html>
