@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Ravintolan muokkaus</title>
+        <title>Ravintolan etsiminen</title>
     </head>
     <body>
         <header style="display: flex; justify-content: space-between; align-items: center;">
@@ -9,7 +9,6 @@
                 <a href="/">Etusivulle</a>
                 <a href="/restaurants">Selaa ravintoloita</a>
                 <a href="/new_restaurant">Lisää ravintola</a>
-                <a href="/search_restaurants">Etsi ravintolaa</a>
             </div>
             
             <div>
@@ -22,6 +21,14 @@
                 {% endif %}
             </div>
         </header>
+        
+        <form action="/search_restaurants" method="get">
+            <p>
+                <label for="query">Hakusana</label>:
+                <input type="text" name="query" id="query" value="{{ query }}">
+            </p>
+            <input type="submit" value="Lähetä">
+        </form>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="flashes">
@@ -31,24 +38,17 @@
             </div>
         {% endif %}
         {% endwith %}
-        <h1>Muokkaa ravintolaa</h1>
-        <form action="/update_restaurant" method="post">
-            <p>
-                Nimi: <br />
-                <input type="text" name="name" value="{{ restaurant.name }}" />
-            </p>
-            <p>
-                Osoite: <br />
-                <input type="text" name="address" value="{{ restaurant.address }}" />
-            </p>
-            <p>
-                Nettisivu: <br />
-                <input type="text" name="link" value="{{ restaurant.link }}" />
-            </p>
-            <input type="hidden" name="id" value="{{ restaurant.id }}" />
-            <input type="submit" value="Tallenna muutokset" />
-        </form>
-        <p>
-            <a href="/restaurants">Peruuta</a>
-        </p>
+        {% if query %}
+            <h3>Tulokset</h3>
+            {% if results %}
+                <ul>
+                    {% for restaurant in results %}
+                        <li><a href="/restaurant/{{ restaurant.id }}">{{ restaurant.name }}</a></li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Ei löytynyt ravintoloita hakusanalla "{{ query }}"</p>
+            {% endif %}
+        {% endif %}
+    </body>
 </html>

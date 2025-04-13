@@ -5,24 +5,67 @@
 </head>
 
 <body>
-    <header>
-        <a href="/">Etusivulle</a>
-        <a href="/restaurants">Selaa ravintoloita</a>
-        <a href="/search">Etsi ravintolaa</a>
-        {% if session.username %}
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="/">Etusivulle</a>
+            <a href="/restaurants">Selaa ravintoloita</a>
             <a href="/new_restaurant">Lisää ravintola</a>
-            <a href="/logout">Kirjaudu ulos</a>
-        {% else %}
-            <a href="/login">Kirjaudu sisään</a>
-            <a href="/register">Rekisteröidy</a>
-        {% endif %}
+            <a href="/search_restaurants">Etsi ravintolaa</a>
+        </div>
+        
+        <div>
+            {% if session.username %}
+                <a href="/user/{{ session.username }}">{{ session.username }}</a>
+                <a href="/logout">Kirjaudu ulos</a>
+            {% else %}
+                <a href="/login">Kirjaudu sisään</a>
+                <a href="/register">Rekisteröidy</a>
+            {% endif %}
+        </div>
     </header>
-
+    
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
     <h1>{{ restaurant.name }}</h1>
 
     <p>Osoite: {{ restaurant.address }}</p>
     <p>Nettisivu: <a href="{{ restaurant.link }}">{{ restaurant.link }}</a></p>
-
+    <p>Tagit:
+        {% for tag in restaurant_tags %}
+            <span>
+                {{ tag.name }}
+                <form action="/remove_tag_from_restaurant" method="post" style="display:inline;">
+                    <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}">
+                    <input type="hidden" name="tag_id" value="{{ tag.id }}">
+                    <button type="submit" style="border:none; background:none; color:red; cursor:pointer;">✖</button>
+                </form>
+                {% if not loop.last %}, {% endif %}
+            </span>
+        {% endfor %}
+    </p>
+    
+    
+        <h3>Lisää tageja</h3>
+        <form action="/add_tags/{{ restaurant.id }}" method="post">
+            {% for tag in tags %}
+            <input type="checkbox" name="tags" value="{{ tag.id }}"> {{ tag.name }} <br>
+            {% endfor %}
+            <input type="submit" value="Lisää tagit">
+        </form>
+<!-- TAG CREATION FORM -->
+    <h3>Luo uusi tagi</h3>
+  <form action="/create_tag" method="post">
+    <input type="text" name="new_tag_name" placeholder="Esim. vegaaninen" required/>
+    <input type="submit" value="Lisää tagi" />
+  </form>
+    {% if session.user_id == restaurant.user_id %}
     <p>
         <a href="/edit_restaurant/{{ restaurant.id }}">
             <button type="button">Muokkaa ravintolaa</button>
@@ -34,10 +77,16 @@
             <button type="button">Poista ravintola</button>
         </a>
     </p>
+    {% endif %}
+    {% if session.user_id %}
     <p>
         <a href="/add_review/{{ restaurant.id }}">
             <button type="button">Lisää arvostelu</button>
         </a>
+    </p>
+    {% endif %}
+    <p>
+
     </p>
     <a href="/restaurants">Takaisin ravintoloihin</a>
 

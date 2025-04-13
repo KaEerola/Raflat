@@ -5,6 +5,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import db
 import config
 import restaurants
+import users
 
 app = Flask(__name__)
 app.secret_key = config.SECRET_KEY 
@@ -71,29 +72,73 @@ def new_restaurants():
     require_login()
 
     if request.method == "GET":
-        return render_template("new_restaurant.html")
-    
+        all_tags = restaurants.get_tags()  
+
+        return render_template("new_restaurant.html", tags=all_tags,)
+
     if request.method == "POST":
         name = request.form["name"]
         address = request.form["address"]
         link = request.form["link"]
-        restaurants.add_restaurant(name, address, link)
+        user_id = session["user_id"]
 
-        flash('Ravintola lisätty', "")
+        restaurants.add_restaurant(name, address, link, user_id)
 
-        return redirect("/")
+        restaurant_id = restaurants.find_restaurant(name)[0][0]
+        tags = request.form.getlist("tags")
+        if tags:
+            for tag in tags:
+                restaurants.associate_tag_with_restaurant(restaurant_id, tag)
+        
+        flash("Ravintola lisätty", "")
+        return redirect("/restaurants")
+
+@app.route("/create_tag", methods=["POST"])
+def create_tag_route():
+    require_login()
+    user_id = session["user_id"]
+    new_tag_name = request.form["new_tag_name"].strip().lower()
+    
+    if not new_tag_name:
+        flash("Tagi ei voi olla tyhjä", "error")
+    else:
+        restaurants.create_tag(user_id, new_tag_name)
+        flash(f"Tagi '{new_tag_name}' lisätty", "success")
+
+    return redirect(request.referrer or "/")
     
 @app.route("/restaurants")
 def show_restaurants():
     rest = restaurants.get_restaurants()
-    print(rest)
     return render_template("restaurants.html", restaurants=rest)
 
 @app.route("/restaurant/<int:restaurant_id>")
 def show_restaurant(restaurant_id):
     restaurant = restaurants.get_restaurant(restaurant_id)
+    tags = restaurants.get_tags()
+    restaurant_tags = restaurants.get_restaurant_tags(restaurant_id)
     reviews = restaurants.get_reviews(restaurant_id)
-    return render_template("restaurant.html", restaurant=restaurant, reviews=reviews)
+    return render_template("restaurant.html", restaurant=restaurant, reviews=reviews, tags=tags, restaurant_tags=restaurant_tags)
+
+@app.route("/remove_tag_from_restaurant", methods=["POST"])
+def remove_tag_from_restaurant():
+    restaurant_id = request.form["restaurant_id"]
+    tag_id = request.form["tag_id"]
+
+    restaurants.remove_tag_from_restaurant(restaurant_id, tag_id)
+
+    # Redirect back to the restaurant detail page
+    return redirect(request.referrer or "/restaurants")
+
+
+@app.route("/add_tags/<int:restaurant_id>", methods=["POST"])
+def add_tags(restaurant_id):
+    tags = request.form.getlist("tags")
+    if tags:
+        for tag in tags:
+            restaurants.associate_tag_with_restaurant(restaurant_id, tag)
+    flash('Tagit lisätty', "")
+    return redirect(url_for("show_restaurant", restaurant_id=restaurant_id))
 
 @app.route("/edit_restaurant/<int:restaurant_id>")
 def edit_restaurant(restaurant_id):
@@ -123,15 +168,23 @@ def remove_restaurant(restaurant_id):
         restaurants.remove_restaurant(restaurant["id"])
         return redirect("/restaurants")
 
-@app.route("/search")
+@app.route("/search_restaurants")
 def search():
     query = request.args.get("query")
-    if query:
+    
+    if query and len(query) < 3:
+        flash('Hakusana liian lyhyt', "error")
+        return redirect("/search_restaurants")
+    
+    if query and len(query) >= 3:
         results = restaurants.find_restaurant(query)
-    else:
-        query = ""
-        results = []
-    return render_template("search.html", query=query, results=results)
+        return render_template("search_restaurants.html", query=query, results=results)
+    
+    # If no query at all (e.g., first time loading the page)
+    results = []
+    return render_template("search_restaurants.html", query="", results=results)
+
+    
     
 @app.route("/add_review/<int:restaurant_id>", methods=["GET", "POST"])
 def add_review(restaurant_id):
@@ -145,6 +198,24 @@ def add_review(restaurant_id):
         restaurants.add_review(restaurant_id, user_id, rating, comment)
         flash('Arvostelu lisätty', "")
         return redirect("/restaurants")
+    
+@app.route("/edit_review/<int:review_id>")
+def edit_review(review_id):
+    review = restaurants.get_review(review_id)
+    restaurant = restaurants.get_restaurant(review["restaurant_id"])
+    return render_template("edit_review.html", review=review, restaurant=restaurant)
+
+@app.route("/update_review", methods = ["POST"])
+def update_review():
+    review_id= request.form["id"]
+    rating = request.form["rating"]
+    comment = request.form["comment"]
+    restaurant_id = request.form["restaurant_id"]
+
+    restaurants.update_review(review_id, rating, comment)
+
+    flash('Arvostelu muokattu', "")
+    return redirect(url_for('show_restaurant', restaurant_id=restaurant_id))
 
 @app.route("/remove_review/<int:review_id>", methods=["GET", "POST"])
 def remove_review(review_id):
@@ -159,3 +230,18 @@ def remove_review(review_id):
         restaurants.remove_review(review_id)
         flash('Arvostelu poistettu', "")
         return redirect(url_for("show_restaurant", restaurant_id=restaurant_id))
+    
+@app.route("/user/<string:username>")
+def show_user(username):
+    user = users.get_user(username)  
+    
+    if not user:
+        return "VIRHE: käyttäjää ei löydy"
+    
+    user_id = user[0]
+    
+    restaurants = users.get_user_restaurants(user_id)  
+    reviews = users.get_user_reviews(user_id)  
+    tags = users.get_user_tags(user_id)
+    
+    return render_template("user.html", user=user, reviews=reviews, restaurants=restaurants, tags=tags)

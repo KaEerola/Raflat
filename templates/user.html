@@ -1,0 +1,119 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <title>{{ user.name }}</title>
+</head>
+
+<body>
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="/">Etusivulle</a>
+            <a href="/restaurants">Selaa ravintoloita</a>
+            <a href="/search_restaurants">Etsi ravintolaa</a>
+        </div>
+        
+        <div>
+            {% if session.username %}
+                <a href="/user/{{ session.username }}">{{ session.username }}</a>
+                <a href="/logout">Kirjaudu ulos</a>
+            {% else %}
+                <a href="/login">Kirjaudu sisään</a>
+                <a href="/register">Rekisteröidy</a>
+            {% endif %}
+        </div>
+    </header>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <h1>{{ user.name }}</h1>
+    <p>Rekisteröitynyt: {{ user.created_at }}</p>
+    {% if reviews %}
+    <p>Luotuja arvosteluja: {{ reviews | count }}</p>
+    {% else %}
+    <p>Luotuja arvosteluja: 0</p>
+    {% endif %}
+    {% if restaurants %}
+    <p>Luotuja ravintoloita: {{ restaurants | count }}</p>
+    {% else %}
+    <p>Luotuja ravintoloita: 0</p>
+    {% endif %}
+    {% if tags %}
+    <p>Luotuja tageja: {{ tags | count }}</p>
+    {% else %}
+    <p>Luotuja tageja: 0</p>
+    {% endif %}
+
+    {% if restaurants %}
+        <h2>Lisätyt ravintolat</h2>
+        <ul>
+            {% for restaurant in restaurants %}
+                <li><a href="/restaurant/{{ restaurant.id }}">{{ restaurant.name }}</a></li>
+                {% if session.user_id == restaurant.user_id %}
+                <p>
+                    <a href="/edit_restaurant/{{ restaurant.id }}">
+                        <button type="button">Muokkaa ravintolaa</button>
+                    </a>
+                </p>
+
+                <p>
+                    <a href="/remove_restaurant/{{ restaurant.id }}"> 
+                        <button type="button">Poista ravintola</button>
+                    </a>
+                </p>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ei ravintoloita</p>
+    {% endif %}
+
+    {% if reviews %}
+        <h2>Käyttäjän arvostelut</h2>
+        <ul>
+            {% for review in reviews %}
+                <li><a href="/restaurant/{{ review.restaurant_id }}">{{ review.restaurant_name }}</a>: {{ review.comment }} - {{ review.rating }} tähteä</li>
+                {% if session.user_id == review.user_id %}
+                    <p>
+                        <a href="/edit_review/{{ review.id }}">
+                            <button type="button">Muokkaa arvostelua</button>
+                        </a>
+                    </p>
+                    <p>
+                        <a href="/remove_review/{{ review.id }}">
+                            <button type="button">Poista arvostelu</button>
+                        </a>
+                    </p>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ei arvosteluja</p>
+    {% endif %}
+
+    {% if tags %}
+        <h2>Luodut tagit</h2>
+        <ul>
+        {% for tag in tags %}
+            <li>
+            {{ tag.name }}
+            {% if tag.user_id == session.user_id %}
+            <form action="/delete_tag" method="post" style="display:inline;">
+                <input type="hidden" name="tag_id" value="{{ tag.id }}">
+                <button type="submit" onclick="return confirm('Haluatko varmasti poistaa tagin?')">🗑️</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>Ei Luotuja tageja</p>
+    {% endif %}
+</body>
+
+</html>

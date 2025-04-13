@@ -1,41 +1,70 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-  <title>Ravintolan lisäys</title>
+  <title>Lisää ravintola</title>
 </head>
-
 <body>
-    <header>
+  <header style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
         <a href="/">Etusivulle</a>
         <a href="/restaurants">Selaa ravintoloita</a>
-        <a href="/search">Etsi ravintolaa</a>
+        <a href="/search_restaurants">Etsi ravintolaa</a>
+    </div>
+    
+    <div>
         {% if session.username %}
+            <a href="/user/{{ session.username }}">{{ session.username }}</a>
             <a href="/logout">Kirjaudu ulos</a>
         {% else %}
             <a href="/login">Kirjaudu sisään</a>
             <a href="/register">Rekisteröidy</a>
         {% endif %}
-    </header>
-    <h1>Lisää ravintola</h1>
-    <form action="/new_restaurant" method="post">
-        <p>
-        Nimi: <br />
-        <input type="text" name="name" />
-        </p>
-        <p>
-        Osoite: <br />
-        <input type="text" name="address" />
-        </p>
-        <p>
-        Nettisivu: <br />
-        <input type="text" name="link" />
-        </p>
-        <input type="submit" value="Lisää ravintola" />
-    </form>
+    </div>
+</header>
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flashes">
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+  <h1>Lisää ravintola</h1>
+  <!-- MAIN FORM -->
+  <form action="/new_restaurant" method="post">
     <p>
-        <a href="/">Peruuta</a>
+      Nimi: <br />
+      <input type="text" name="name" />
     </p>
-</body>
+    <p>
+      Osoite: <br />
+      <input type="text" name="address" />
+    </p>
+    <p>
+      Nettisivu: <br />
+      <input type="text" name="link" />
+    </p>
 
+    <!-- Tag selection using checkboxes -->
+    <h3>Valitse tagit:</h3>
+    {% for tag in tags %}
+      <input type="checkbox" name="tags" value="{{ tag.id }}"> {{ tag.name }} <br>
+    {% endfor %}
+
+    <p>
+      <button type="submit">Lisää ravintola</button>
+    </p>
+  </form>
+
+  <!-- TAG CREATION FORM -->
+  <h2>Luo uusi tagi</h2>
+  <form action="/create_tag" method="post">
+    <input type="text" name="new_tag_name" placeholder="Esim. vegaaninen" required />
+    <input type="submit" value="Lisää tagi" />
+  </form>
+  <p>
+    <a href="/">Peruuta</a>
+  </p>
+</body>
 </html>

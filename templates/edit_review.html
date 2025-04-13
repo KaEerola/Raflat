@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<head>
+    Arvostelun muokkaus
+</head>
+
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+    <h1>Muokkaa arvostelua</h1>
+    <form action="/update_review" method="post">
+        <p>
+            Arvosana: <br />
+            <input type="number" name="rating" value="{{ review.rating }}" min="1" max="5" required/>
+        </p>
+        <p>
+            Arvostelu: <br />
+            <textarea name="comment" id="comment" rows="8" cols="60" maxlength="1000" required>{{ review.comment }}</textarea>
+        </p>
+        <input type="hidden" name="id" value="{{ review.id }}" />
+        <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}" />
+        <input type="submit" value="Tallenna muutokset" />
+    </form>
+    <p>
+        <a href="/restaurant/{{ restaurant.id }}">Peruuta</a>
+</body>

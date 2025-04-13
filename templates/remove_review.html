@@ -4,6 +4,15 @@
         <title>Arvostelun poisto</title>
     </head>
     <body>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flashes">
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
       <form action="/remove_review/{{ review.id }}" method="post">
         <p>
           Haluatko varmasti poistaa arvostelun {{ review.text }}?

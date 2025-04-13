@@ -6,6 +6,15 @@
 </head>
 
 <body>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+      <div class="flashes">
+      {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+      </div>
+  {% endif %}
+  {% endwith %}
   <form action="/create" method="post">
     <p>
       Tunnus: <br />
@@ -21,6 +30,12 @@
     </p>
     <input type="submit" value="Luo tunnus" />
   </form>
+  <p>
+    <a href="/login">Kirjaudu sisään</a> 
+  </p>
+  <p>
+    <a href="/">Etusivulle</a>
+  </p>
 </body>
 
 </html>
