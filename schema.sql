@@ -33,3 +33,9 @@ CREATE TABLE IF NOT EXISTS restaurant_Tags (
     tag_id INTEGER REFERENCES tags,
     PRIMARY KEY (restaurant_id, tag_id)
 );
+
+-- Index on restaurant_id in the reviews table
+CREATE INDEX IF NOT EXISTS idx_reviews_restaurant_id ON reviews (restaurant_id);
+
+-- Index on user_id in the reviews table
+CREATE INDEX IF NOT EXISTS idx_reviews_user_id ON reviews (user_id);
