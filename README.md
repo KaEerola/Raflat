@@ -22,3 +22,5 @@
    - Käyttäjä voi luoda tagin ja liittää sen ravintolaan
    - Käyttäjä voi luoda arvostelun ravintolalle ja muokata tai poistaa sen
    - Luotu käyttäjäsivu, jossa näkyy käyttäjän lisäämät ravintolat, arviot ja tagit
+
+Sovellus on testattu suurilla tietomäärillä seed.py tiedoston avulla ja se toimii nopeasti myös suurilla tietomäärillä
