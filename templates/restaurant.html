@@ -1,68 +1,49 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ restaurant.name }}</title>
-</head>
+{% extends "layout.html" %}
 
-<body>
-    <header style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <a href="/">Etusivulle</a>
-            <a href="/restaurants">Selaa ravintoloita</a>
-            <a href="/new_restaurant">Lisää ravintola</a>
-            <a href="/search_restaurants">Etsi ravintolaa</a>
-        </div>
+{% block title %}{{ restaurant.name }}{% endblock %}
+
+{% block content %}
         
-        <div>
-            {% if session.username %}
-                <a href="/user/{{ session.username }}">{{ session.username }}</a>
-                <a href="/logout">Kirjaudu ulos</a>
-            {% else %}
-                <a href="/login">Kirjaudu sisään</a>
-                <a href="/register">Rekisteröidy</a>
-            {% endif %}
-        </div>
-    </header>
-    
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flashes">
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
-    <h1>{{ restaurant.name }}</h1>
+    <h2>{{ restaurant.name }}</h2>
 
-    <p>Osoite: {{ restaurant.address }}</p>
-    <p>Nettisivu: <a href="{{ restaurant.link }}">{{ restaurant.link }}</a></p>
-    <p>Tagit:
+    <p>Osoite:</p>
+    <p>{{ restaurant.address }}</p>
+    <p>Nettisivu: 
+        <a href="{{ restaurant.link }}" class="link">
+        {{ restaurant.link }}
+        </a>
+    </p>
+    <p>Arvosana: {{ average_rating }}</p>
+    <div class="tags">
         {% for tag in restaurant_tags %}
-            <span>
-                {{ tag.name }}
-                <form action="/remove_tag_from_restaurant" method="post" style="display:inline;">
+            <div class="tag-item">
+                <span>{{ tag.name }}</span>
+                <form action="/remove_tag_from_restaurant" method="post" class="remove-tag-form">
                     <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}">
                     <input type="hidden" name="tag_id" value="{{ tag.id }}">
-                    <button type="submit" style="border:none; background:none; color:red; cursor:pointer;">✖</button>
+                    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                    <button type="submit" class="remove-tag">✖</button>
                 </form>
-                {% if not loop.last %}, {% endif %}
-            </span>
+            </div>
         {% endfor %}
-    </p>
-    
-    
-        <h3>Lisää tageja</h3>
-        <form action="/add_tags/{{ restaurant.id }}" method="post">
+    </div>   
+        <h2>Lisää tageja</h2>
+        <form action="/add_tags/{{ restaurant.id }}" method="post" class="add-tag-form">
+            <h3>Valitse tagit:</h3>
+            {% if not tags %}
+                <p>Ei tageja</p>
+            {% endif %}
             {% for tag in tags %}
             <input type="checkbox" name="tags" value="{{ tag.id }}"> {{ tag.name }} <br>
             {% endfor %}
+            <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
             <input type="submit" value="Lisää tagit">
         </form>
 <!-- TAG CREATION FORM -->
-    <h3>Luo uusi tagi</h3>
+    <h2>Luo uusi tagi</h2>
   <form action="/create_tag" method="post">
     <input type="text" name="new_tag_name" placeholder="Esim. vegaaninen" required/>
+    <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
     <input type="submit" value="Lisää tagi" />
   </form>
     {% if session.user_id == restaurant.user_id %}
@@ -88,16 +69,31 @@
     <p>
 
     </p>
-    <a href="/restaurants">Takaisin ravintoloihin</a>
+    <a href="/restaurants">
+        <button type="button">Takaisin ravintoloihin</button>
+    </a>
 
     {% if reviews %}
     <h2>Arvostelut</h2>
+
+    <div class="sort-options">
+        <span>Järjestä:</span>
+        <a href="{{ url_for('show_restaurant', restaurant_id=restaurant.id) }}?sort=newest&page=1"
+           class="{% if sort == 'newest' %}active-sort{% endif %}">Uusin</a>
+        <a href="{{ url_for('show_restaurant', restaurant_id=restaurant.id) }}?sort=oldest&page=1"
+           class="{% if sort == 'oldest' %}active-sort{% endif %}">Vanhin</a>
+        <a href="{{ url_for('show_restaurant', restaurant_id=restaurant.id) }}?sort=highest&page=1"
+           class="{% if sort == 'highest' %}active-sort{% endif %}">Parhaat</a>
+        <a href="{{ url_for('show_restaurant', restaurant_id=restaurant.id) }}?sort=lowest&page=1"
+           class="{% if sort == 'lowest' %}active-sort{% endif %}">Heikoimmat</a>
+    </div>
+
     <div class="reviews">
         {% for review in reviews %}
-        
             <div class="review-card">
-                <p><strong>{{ review.username}} {{ review.created_at}}</strong></p>
-                <p>{{ review.comment }} - {{ review.rating }} tähteä</p>
+                <p><strong>{{ review.username }} {{ review.created_at }}</strong></p>
+                <p>{{ review.comment | show_lines }}</p>
+                <p>{{ review.rating }} / 5</p>
                 {% if session.user_id == review.user_id %}
                     <p>
                         <a href="/edit_review/{{ review.id }}">
@@ -113,10 +109,19 @@
             </div>
         {% endfor %}
     </div>
-    {% else %}
+
+    <div class="pagination">
+        {% for page_number in range(1, total_pages + 1) %}
+            {% if page_number == current_page %}
+                <strong>{{ page_number }}</strong>
+            {% else %}
+                <a href="{{ url_for('show_restaurant', restaurant_id=restaurant.id) }}?sort={{ sort }}&page={{ page_number }}">
+                    {{ page_number }}
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% else %}
     <p>Ei arvosteluja</p>
-    {% endif %}
-
-</body>
-
-</html>
+{% endif %}
+{% endblock %}

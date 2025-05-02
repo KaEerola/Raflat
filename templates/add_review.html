@@ -1,37 +1,9 @@
-<!DOCTYPE html>
+{% extends "layout.html" %}
 
-<head>
-    <title>Arvostelun lisäys</title>
-</head>
-<body>
-    <header style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <a href="/">Etusivulle</a>
-            <a href="/restaurants">Selaa ravintoloita</a>
-            <a href="/new_restaurant">Lisää ravintola</a>
-            <a href="/search_restaurants">Etsi ravintolaa</a>
-        </div>
-        
-        <div>
-            {% if session.username %}
-                <a href="/user/{{ session.username }}">{{ session.username }}</a>
-                <a href="/logout">Kirjaudu ulos</a>
-            {% else %}
-                <a href="/login">Kirjaudu sisään</a>
-                <a href="/register">Rekisteröidy</a>
-            {% endif %}
-        </div>
-    </header>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="flashes">
-        {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-    <h1>Lisää arvostelu</h1>
+{% block title %}Arvostelun lisäys{% endblock %}
+
+{% block content %}
+    <h2>Lisää arvostelu</h2>
     <form action="/add_review/{{ restaurant.id }}" method="post">
         <p>
             Arvosana: <br />
@@ -42,8 +14,10 @@
             <textarea name="comment" id="comment" rows="8" cols="60" maxlength="1000" required></textarea>
         </p>
         <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}" />
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
         <input type="submit" value="Lisää arvostelu" />
     </form>
     <p>
         <a href="/restaurant/{{ restaurant.id }}">Peruuta</a>
     </p>
+{% endblock %}

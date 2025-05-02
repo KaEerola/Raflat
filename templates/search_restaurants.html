@@ -1,54 +1,54 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Ravintolan etsiminen</title>
-    </head>
-    <body>
-        <header style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <a href="/">Etusivulle</a>
-                <a href="/restaurants">Selaa ravintoloita</a>
-                <a href="/new_restaurant">Lisää ravintola</a>
-            </div>
-            
-            <div>
-                {% if session.username %}
-                    <a href="/user/{{ session.username }}">{{ session.username }}</a>
-                    <a href="/logout">Kirjaudu ulos</a>
-                {% else %}
-                    <a href="/login">Kirjaudu sisään</a>
-                    <a href="/register">Rekisteröidy</a>
-                {% endif %}
-            </div>
-        </header>
-        
+{% extends "layout.html" %}
+
+{% block title %}Ravintoloiden haku{% endblock %}
+
+{% block content %}
         <form action="/search_restaurants" method="get">
             <p>
                 <label for="query">Hakusana</label>:
-                <input type="text" name="query" id="query" value="{{ query }}">
+                <input type="text" name="query" id="query" value="{{ query }}"
+                placeholder="Vähintään 3 merkkiä" required>
             </p>
             <input type="submit" value="Lähetä">
         </form>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flashes">
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
+        
         {% if query %}
-            <h3>Tulokset</h3>
+            <h3>Tulokset</h3>    
             {% if results %}
-                <ul>
-                    {% for restaurant in results %}
-                        <li><a href="/restaurant/{{ restaurant.id }}">{{ restaurant.name }}</a></li>
+            <form method="get" action="{{ url_for('search_restaurants') }}" class="limit-form">
+                <input type="hidden" name="query" value="{{ query }}">
+                <input type="hidden" name="page" value="1">
+                <label for="limit">Näytä:</label>
+                <select name="limit" id="limit">
+                    {% for value in [5, 10, 20, 50] %}
+                        <option value="{{ value }}" {% if value == current_limit %}selected{% endif %}>{{ value }}</option>
                     {% endfor %}
-                </ul>
+                </select>
+                <button type="submit" class="outside-button">Näytä</button>
+            </form>
+            <ul class="restaurant-list">
+                {% for restaurant in results %}
+                    <li>
+                        <a href="/restaurant/{{ restaurant.id }}" class="restaurant-link">
+                            {{ restaurant.name }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+                <div class="pagination">
+                    {% for page_num in range(1, total_pages + 1) %}
+                        {% if page_num == current_page %}
+                            <strong>{{ page_num }}</strong>
+                        {% else %}
+                            <a href="{{ url_for('search_restaurants') }}?query={{ query }}&limit={{ current_limit }}&page={{ page_num }}">
+                                {{ page_num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             {% else %}
                 <p>Ei löytynyt ravintoloita hakusanalla "{{ query }}"</p>
             {% endif %}
         {% endif %}
     </body>
-</html>
+{% endblock %}

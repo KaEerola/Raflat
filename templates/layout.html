@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head> 
+
+<body>
+    <header style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <a href="/">Etusivulle</a>
+            <a href="/restaurants">Ravintolat</a>
+            <a href="/new_restaurant">Lisää ravintola</a>
+            <a href="/search_restaurants">Etsi ravintolaa</a>
+        </div>
+
+        <div>
+            <a href="/search_users">Etsi käyttäjiä</a>
+            {% if session.username %}
+                <a href="/user/{{ session.username }}">{{ session.username }}</a>
+                <a href="/logout">Kirjaudu ulos</a>
+            {% else %}
+                <a href="/login">Kirjaudu sisään</a>
+                <a href="/register">Rekisteröidy</a>
+            {% endif %}
+        </div>
+    </header>
+    <h1>Raflat</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flashes">
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</body>
+</html>

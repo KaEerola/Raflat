@@ -1,26 +1,16 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Arvostelun poisto</title>
-    </head>
-    <body>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flashes">
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
+{% extends "layout.html" %}
+
+{% block title %}Arvostelun poisto{% endblock %}
+
+{% block content %}
       <form action="/remove_review/{{ review.id }}" method="post">
         <p>
           Haluatko varmasti poistaa arvostelun {{ review.text }}?
         </p>
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
         <input type="submit" name="continue" value="Jatka" />
         </form>
         <a href="/restaurant/{{ restaurant.id }}">
             <button type="button">Peruuta</button>
         </a>
-    </body>
-</html>
+{% endblock %}

@@ -1,19 +1,9 @@
-<!DOCTYPE html>
-<head>
-    Arvostelun muokkaus
-</head>
+{% extends "layout.html" %}
 
-<body>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="flashes">
-        {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-    <h1>Muokkaa arvostelua</h1>
+{% block title %}Arvostelun muokkaus{% endblock %}
+
+{% block content %}
+    <h2>Muokkaa arvostelua</h2>
     <form action="/update_review" method="post">
         <p>
             Arvosana: <br />
@@ -25,8 +15,10 @@
         </p>
         <input type="hidden" name="id" value="{{ review.id }}" />
         <input type="hidden" name="restaurant_id" value="{{ restaurant.id }}" />
+        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}" />
         <input type="submit" value="Tallenna muutokset" />
     </form>
     <p>
         <a href="/restaurant/{{ restaurant.id }}">Peruuta</a>
-</body>
+    </p>
+{% endblock %}

@@ -1,45 +1,17 @@
-<!DOCTYPE html> 
-<html>
-<head>
-    <title>{{ user.name }}</title>
-</head>
+{% extends "layout.html" %}
 
-<body>
-    <header style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <a href="/">Etusivulle</a>
-            <a href="/restaurants">Selaa ravintoloita</a>
-            <a href="/search_restaurants">Etsi ravintolaa</a>
-        </div>
-        
-        <div>
-            {% if session.username %}
-                <a href="/user/{{ session.username }}">{{ session.username }}</a>
-                <a href="/logout">Kirjaudu ulos</a>
-            {% else %}
-                <a href="/login">Kirjaudu sisään</a>
-                <a href="/register">Rekisteröidy</a>
-            {% endif %}
-        </div>
-    </header>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <div class="flashes">
-        {% for category, message in messages %}
-            <div class="flash {{ category }}">{{ message }}</div>
-        {% endfor %}
-        </div>
-    {% endif %}
-    {% endwith %}
-    <h1>{{ user.name }}</h1>
+{% block title %}{{ user.username }}{% endblock %}
+
+{% block content %}
+    <h3>{{ user.name }}</h3>
     <p>Rekisteröitynyt: {{ user.created_at }}</p>
     {% if reviews %}
     <p>Luotuja arvosteluja: {{ reviews | count }}</p>
     {% else %}
     <p>Luotuja arvosteluja: 0</p>
     {% endif %}
-    {% if restaurants %}
-    <p>Luotuja ravintoloita: {{ restaurants | count }}</p>
+    {% if added_restaurants %}
+    <p>Luotuja ravintoloita: {{ added_restaurants | count }}</p>
     {% else %}
     <p>Luotuja ravintoloita: 0</p>
     {% endif %}
@@ -49,71 +21,99 @@
     <p>Luotuja tageja: 0</p>
     {% endif %}
 
-    {% if restaurants %}
-        <h2>Lisätyt ravintolat</h2>
-        <ul>
-            {% for restaurant in restaurants %}
-                <li><a href="/restaurant/{{ restaurant.id }}">{{ restaurant.name }}</a></li>
-                {% if session.user_id == restaurant.user_id %}
-                <p>
-                    <a href="/edit_restaurant/{{ restaurant.id }}">
-                        <button type="button">Muokkaa ravintolaa</button>
-                    </a>
-                </p>
-
-                <p>
-                    <a href="/remove_restaurant/{{ restaurant.id }}"> 
-                        <button type="button">Poista ravintola</button>
-                    </a>
-                </p>
-                {% endif %}
+    {% if added_restaurants %}
+    <h2>Käyttäjän luomat ravintolat</h2>
+    <form method="get" action="/user/{{ user.username}}" class="limit-form">
+        <label for="restaurant_limit">Näytä:</label>
+        <select name="restaurant_limit" id="restaurant_limit">
+            {% for value in [5, 10, 20, 50] %}
+                <option value="{{ value }}" {% if value == restaurant_current_limit %}selected{% endif %}>{{ value }}</option>
             {% endfor %}
-        </ul>
+        </select>
+        <input type="hidden" name="restaurant_page" value="1">  <!-- reset to first page on change -->
+        <button type="submit" class="outside-button">Näytä</button>
+    </form>
+    
+    <ul class="restaurant-list">
+        {% for restaurant in added_restaurants %}
+            <li>
+                <a href="/restaurant/{{ restaurant.id }}" class="restaurant-link">
+                    {{ restaurant.name }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
     {% else %}
-        <p>Ei ravintoloita</p>
+        <p>Ei luotuja ravintoloita</p>
     {% endif %}
+
+    <div class="pagination">
+        {% for restaurant_page_number in range(1, restaurant_total_pages + 1) %}
+            {% if restaurant_page_number == restaurant_current_page %}
+                <strong>{{ restaurant_page_number }}</strong>
+            {% else %}
+            <a href="{{ url_for('show_user', username=user.username) }}?restaurant_limit={{ restaurant_current_limit }}&restaurant_page={{ restaurant_page_number }}&review_page={{ review_current_page }}">
+                    {{ restaurant_page_number }}
+            </a>
+            {% endif %}
+        {% endfor %}
+    </div>
 
     {% if reviews %}
         <h2>Käyttäjän arvostelut</h2>
-        <ul>
+        <div class="reviews">
             {% for review in reviews %}
-                <li><a href="/restaurant/{{ review.restaurant_id }}">{{ review.restaurant_name }}</a>: {{ review.comment }} - {{ review.rating }} tähteä</li>
-                {% if session.user_id == review.user_id %}
-                    <p>
-                        <a href="/edit_review/{{ review.id }}">
-                            <button type="button">Muokkaa arvostelua</button>
-                        </a>
-                    </p>
-                    <p>
-                        <a href="/remove_review/{{ review.id }}">
-                            <button type="button">Poista arvostelu</button>
-                        </a>
-                    </p>
+                <div class="review-card">
+                    <p><strong>{{ review.username }} {{ review.created_at }}</strong></p>
+                    <p>{{ review.comment | show_lines }}</p>
+                    <p>{{ review.rating }} / 5</p>
+                    {% if session.user_id == review.user_id %}
+                        <p>
+                            <a href="/edit_review/{{ review.id }}">
+                                <button type="button">Muokkaa arvostelua</button>
+                            </a>
+                        </p>
+                        <p>
+                            <a href="/remove_review/{{ review.id }}">
+                                <button type="button">Poista arvostelu</button>
+                            </a>
+                        </p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div class="pagination">
+            {% for review_page_number in range(1, review_total_pages + 1) %}
+                {% if review_page_number == review_current_page %}
+                    <strong>{{ review_page_number }}</strong>
+                {% else %}
+                <a href="{{ url_for('show_user', username=user.username) }}?restaurant_limit={{ restaurant_current_limit }}&restaurant_page={{ restaurant_page_number }}&review_page={{ review_page_number }}">
+                        {{ review_page_number }}
+                </a>
                 {% endif %}
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
         <p>Ei arvosteluja</p>
     {% endif %}
 
     {% if tags %}
         <h2>Luodut tagit</h2>
-        <ul>
-        {% for tag in tags %}
-            <li>
-            {{ tag.name }}
-            {% if tag.user_id == session.user_id %}
-            <form action="/delete_tag" method="post" style="display:inline;">
-                <input type="hidden" name="tag_id" value="{{ tag.id }}">
-                <button type="submit" onclick="return confirm('Haluatko varmasti poistaa tagin?')">🗑️</button>
-            </form>
-            {% endif %}
-        </li>
-        {% endfor %}
-        </ul>
+        <div class="tags">
+            {% for tag in tags %}
+                <div class="tag-item">
+                    <span>{{ tag.name }}</span>
+                    {% if tag.user_id == session.user_id %}
+                    <form action="/delete_tag" method="post" class="remove-tag-form">
+                        <input type="hidden" name="tag_id" value="{{ tag.id }}">
+                        <input type="hidden" name="csrf_token" value="{{ session.csrf_token }}">
+                        <button type="submit" class="remove-tag"onclick="return confirm('Haluatko varmasti poistaa tagin?')">🗑️</button>
+                    </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>   
     {% else %}
         <p>Ei Luotuja tageja</p>
     {% endif %}
-</body>
-
-</html>
+{% endblock %}

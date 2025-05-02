@@ -1,39 +1,7 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <title>Raflat</title>
-</head>
-
-<body>
-  <header style="display: flex; justify-content: space-between; align-items: center;">
-    <div>
-        <a href="/">Etusivulle</a>
-        <a href="/restaurants">Selaa ravintoloita</a>
-        <a href="/new_restaurant">Lisää ravintola</a>
-        <a href="/search_restaurants">Etsi ravintolaa</a>
-    </div>
-    
-    <div>
-        {% if session.username %}
-            <a href="/user/{{ session.username }}">{{ session.username }}</a>
-            <a href="/logout">Kirjaudu ulos</a>
-        {% else %}
-            <a href="/login">Kirjaudu sisään</a>
-            <a href="/register">Rekisteröidy</a>
-        {% endif %}
-    </div>
-</header>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flashes">
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
-  <h1>Raflat</h1>
+{% block title %}Raflat{% endblock %}
+{% block content %}
   <p>
     Sovellus Helsinkiläisten ravintoloiden tutkimiseen ja arvosteluun.
   </p>
@@ -42,6 +10,4 @@
     Olet kirjautunut nimellä <a href="/user/{{ session.username}}">{{ session.username }}</a>
   </p>
   {% endif %}
-</body>
-
-</html>
+{% endblock %}

@@ -1,32 +1,20 @@
-<!DOCTYPE html>
-<html>
+{% extends "layout.html" %}
 
-<head>
-  <title>Rekisteröinti</title>
-</head>
+{% block title %}Rekisteröinti{% endblock %}
 
-<body>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-      <div class="flashes">
-      {% for category, message in messages %}
-          <div class="flash {{ category }}">{{ message }}</div>
-      {% endfor %}
-      </div>
-  {% endif %}
-  {% endwith %}
-  <form action="/create" method="post">
+{% block content %}
+  <form action="/register" method="post">
     <p>
       Tunnus: <br />
-      <input type="text" name="username" />
+      <input type="text" name="username" required/>
     </p>
     <p>
       Salasana: <br />
-      <input type="password" name="password1" />
+      <input type="password" name="password1" required/>
     </p>
     <p>
       Salasana uudestaan: <br />
-      <input type="password" name="password2" />
+      <input type="password" name="password2" required/>
     </p>
     <input type="submit" value="Luo tunnus" />
   </form>
@@ -36,6 +24,4 @@
   <p>
     <a href="/">Etusivulle</a>
   </p>
-</body>
-
-</html>
+{% endblock %}

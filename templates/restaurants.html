@@ -1,49 +1,42 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Ravintolat</title>
-    </head>
-    <body>
-        <header style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <a href="/">Etusivulle</a>
-                <a href="/new_restaurant">Lisää ravintola</a>
-                <a href="/search_restaurants">Etsi ravintolaa</a>
+{% extends "layout.html" %}
 
-            </div>
-            
-            <div>
-                {% if session.username %}
-                    <a href="/user/{{ session.username }}">{{ session.username }}</a>
-                    <a href="/logout">Kirjaudu ulos</a>
-                {% else %}
-                    <a href="/login">Kirjaudu sisään</a>
-                    <a href="/register">Rekisteröidy</a>
-                {% endif %}
-            </div>
-        </header>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="flashes">
-            {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
-            {% endfor %}
-            </div>
-        {% endif %}
-        {% endwith %}
-        <h1>Selaa ravintoloita</h1>
+{% block title %}Ravintolat{% endblock %}
 
+{% block content %}
+    <h2>Selaa ravintoloita</h2>
+
+        <form method="get" action="/restaurants">
+            <label for="limit">Näytä:</label>
+            <select name="limit" id="limit">
+                {% for value in [5, 10, 20, 50] %}
+                    <option value="{{ value }}" {% if value == current_limit %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Näytä</button>
+        </form>
         {% if not restaurants %}
             <p>Ei ravintoloita</p>
         {% else %}
-            <ul>
-                {% for restaurant in restaurants %}
-                    <li>
-                        <a href="/restaurant/{{ restaurant.id }}">{{ restaurant.name }}</a>
-                    </li>
-                {% endfor %}
-            </ul>
+        <ul class="restaurant-list">
+            {% for restaurant in restaurants %}
+                <li>
+                    <a href="/restaurant/{{ restaurant.id }}" class="restaurant-link">
+                        {{ restaurant.name }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
         {% endif %}
-    </body>
-</html>
+        <div class="pagination">
+            {% for page_num in range(1, total_pages + 1) %}
+                {% if page_num == current_page %}
+                    <strong>{{ page_num }}</strong>
+                {% else %}
+                    <a href="{{ url_for('show_restaurants') }}?limit={{ current_limit }}&page={{ page_num }}">
+                        {{ page_num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+{% endblock %}
 
